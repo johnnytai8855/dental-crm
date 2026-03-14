@@ -41,7 +41,15 @@ export default async function handler(req, res) {
               body: JSON.stringify({
                 contents: [{
                   parts: [{
-                    text: `你是一位牙科專業秘書，請將以下牙科看診轉錄稿整理成簡短、專業且條列式的病歷重點摘要。只輸出摘要內容，不要有額外廢話：\n\n${rawTranscript}`
+                    text: `你是一位專業的牙科醫師助理，請將以下診間對話轉錄稿整理成一份專業、條列式的病歷重點摘要 (Clinical Summary)。
+                    
+                    要求：
+                    1. 使用繁體中文。
+                    2. 包含：主訴 (Chief Complaint)、臨床檢查 (Clinical Findings)、治療計畫 (Treatment Plan)。
+                    3. 語氣專業且簡潔。
+                    4. 只輸出摘要內容，不要有任何開場白或結尾。
+                    
+                    轉錄內容：\n\n${rawTranscript}`
                   }]
                 }]
               })
