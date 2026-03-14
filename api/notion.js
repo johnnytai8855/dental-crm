@@ -27,12 +27,33 @@ export default async function handler(req, res) {
     }
 
     if (action === 'create') {
-      // AI Summarization Logic (Mock for now, can be replaced with real LLM call)
+      // AI Summarization Logic via Gemini
       const { summarize, transcript: rawTranscript } = body;
       if (summarize && rawTranscript) {
-        // Here we would call an AI API (Gemini/OpenAI) to summarize
-        // For now, we'll prefix it to show it worked
-        properties["Summary"] = { rich_text: [{ text: { content: `[AI 總結]: ${rawTranscript.substring(0, 100)}...` } }] };
+        const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+        let summaryText = rawTranscript;
+        
+        if (GEMINI_API_KEY) {
+          try {
+            const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{
+                  parts: [{
+                    text: `你是一位牙科專業秘書，請將以下牙科看診轉錄稿整理成簡短、專業且條列式的病歷重點摘要。只輸出摘要內容，不要有額外廢話：\n\n${rawTranscript}`
+                  }]
+                }]
+              })
+            });
+            const geminiData = await geminiRes.json();
+            summaryText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || rawTranscript;
+          } catch (e) {
+            console.error("Gemini API call failed:", e);
+            summaryText = `[摘要失敗] ${rawTranscript}`;
+          }
+        }
+        properties["Summary"] = { rich_text: [{ text: { content: summaryText } }] };
       }
 
       // Handle file uploads (e.g. audio/images)
